@@ -31,8 +31,8 @@ public class UpdateHandler : IUpdateHandler
                 var message = update.Message;
                 var text = message.Text;
 
-                if (text.StartsWith('/') && _commandHandler.TryGetCommand(text, out var command))
-                    await command!.ExecuteAsync(botClient, message, cancellationToken);
+                if (text.StartsWith('/'))
+                    await _commandHandler.HandleCommandAsync(botClient, message, cancellationToken);
                 else
                     await _textHandler.HandleTextMessageAsync(botClient, message, cancellationToken);
             }

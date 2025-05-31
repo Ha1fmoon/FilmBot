@@ -22,8 +22,7 @@ public class Start : CommandBase
                 userName = string.Join(" ", message.From.FirstName, message.From.LastName).Trim();
             else if
                 (!string.IsNullOrWhiteSpace(message.From.Username))
-                userName = message.From
-                    .Username;
+                userName = message.From.Username;
         }
 
         await UserService.GetOrCreateUserAsync(userId, userName);

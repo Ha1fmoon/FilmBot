@@ -10,7 +10,7 @@ namespace FilmLibraryBot.Handlers;
 
 public class CallbackQueryHandler
 {
-    private readonly Dictionary<string, ICallback> _callbacks = new();
+    private readonly Dictionary<string, Type> _callbackTypes = new();
     private readonly IErrorLogger _errorLogger;
     private readonly IMovieService _movieService;
     private readonly IUserService _userService;
@@ -25,42 +25,22 @@ public class CallbackQueryHandler
         _errorLogger = errorLogger;
     }
 
-    private void RegisterCallback(ICallback callback)
-    {
-        if (callback.IsMovieServiceRequired) callback.SetMovieService(_movieService);
-        if (callback.IsUserServiceRequired) callback.SetUserService(_userService);
-
-        callback.SetErrorLogger(_errorLogger);
-
-        _callbacks[callback.Name.ToLower()] = callback;
-    }
-
-    public void RegisterCallbacksFromAssembly(Assembly assembly)
+    public async Task RegisterCallbacksFromAssembly(Assembly assembly)
     {
         var callbackTypes = assembly.GetTypes()
             .Where(t => typeof(ICallback).IsAssignableFrom(t) && !t.IsAbstract && !t.IsInterface)
             .ToList();
 
-        var stateRequiredCallbacks = new List<ICallback>();
-
         foreach (var type in callbackTypes)
             try
             {
                 var callback = (ICallback)Activator.CreateInstance(type)!;
-
-                if (callback.IsStateRequired) stateRequiredCallbacks.Add(callback);
-
-                RegisterCallback(callback);
+                _callbackTypes[callback.Name.ToLower()] = type;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(Texts.Localization.Get("Messages.CallbackRegistrationError", type.Name, ex.Message));
+                await _errorLogger.LogErrorAsync(ex, $"CallbackQueryHandler.RegisterCallback - {type.Name}");
             }
-
-        foreach (var callback in stateRequiredCallbacks) callback.SetStateManager(_userStateManager);
-
-        Console.WriteLine(Texts.Localization.Get("Messages.RegisteredCallbacksList"));
-        foreach (var callback in _callbacks) Console.WriteLine($"- {callback.Value}");
     }
 
     public async Task HandleCallbackQueryAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery,
@@ -121,9 +101,10 @@ public class CallbackQueryHandler
     private async Task ExecuteCallbackHandler(ITelegramBotClient botClient, CallbackQuery callbackQuery,
         string callbackName, string callbackValue, CancellationToken cancellationToken)
     {
-        if (_callbacks.TryGetValue(callbackName.ToLower(), out var callback))
+        if (_callbackTypes.TryGetValue(callbackName.ToLower(), out var callbackType))
             try
             {
+                var callback = CreateCallbackInstance(callbackType);
                 await callback.ExecuteAsync(botClient, callbackQuery, callbackValue, cancellationToken);
             }
             catch (Exception ex)
@@ -132,6 +113,24 @@ public class CallbackQueryHandler
             }
         else
             await HandleCallbackNotFound(botClient, callbackQuery, callbackName, cancellationToken);
+    }
+
+    private ICallback CreateCallbackInstance(Type callbackType)
+    {
+        var callback = (ICallback)Activator.CreateInstance(callbackType)!;
+
+        if (callback.IsMovieServiceRequired)
+            callback.SetMovieService(_movieService);
+
+        if (callback.IsUserServiceRequired)
+            callback.SetUserService(_userService);
+
+        if (callback.IsStateRequired)
+            callback.SetStateManager(_userStateManager);
+
+        callback.SetErrorLogger(_errorLogger);
+
+        return callback;
     }
 
     private async Task HandleCallbackError(ITelegramBotClient botClient, CallbackQuery callbackQuery,

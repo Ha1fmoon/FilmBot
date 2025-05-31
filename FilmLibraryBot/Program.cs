@@ -46,10 +46,10 @@ internal class Program
         IErrorLogger errorLogger = new ConsoleLogger();
 
         var commandHandler = new CommandHandler(stateManager, movieService, userService, errorLogger);
-        commandHandler.RegisterCommandsFromAssembly(typeof(Program).Assembly);
+        await commandHandler.RegisterCommandsFromAssembly(typeof(Program).Assembly);
 
         var callbackQueryHandler = new CallbackQueryHandler(stateManager, movieService, userService, errorLogger);
-        callbackQueryHandler.RegisterCallbacksFromAssembly(typeof(Program).Assembly);
+        await callbackQueryHandler.RegisterCallbacksFromAssembly(typeof(Program).Assembly);
 
         var textHandler = new TextHandler(stateManager, movieService);
         var updateHandler = new UpdateHandler(commandHandler, callbackQueryHandler, textHandler, errorLogger);
