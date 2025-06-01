@@ -2,9 +2,8 @@
   "CommandDescriptions": {
     "Start": "Start working with the bot",
     "Random": "Choose a random movie/TV show",
-    "Watched": "Show watched movies and TV shows",
     "Help": "Show list of available commands",
-    "WatchList": "Show library",
+    "Library": "Show library",
     "Search": "Add a movie or TV show"
   },
   "Messages": {
@@ -56,6 +55,7 @@
     "AddedToLibraryStatus": "Movie added to library",
     "MoreDetailsAbout": "More details about {0}",
     "LibraryPagination": "Page {0} of {1}",
+    "ChooseLibraryType": "Choose library type:",
     "MessageTooLong": "The maximum length of a search query string is 50 characters."
   },
   "MediaTypes": {
@@ -85,6 +85,8 @@
     "AddToWatchListFull": "Add to watchlist",
     "RemoveFromWatchListFull": "Remove from list",
     "RemoveFromWatchedFull": "Remove from watched",
-    "BackToSearch": "Back to search"
+    "BackToSearch": "Back to search",
+    "WatchList": "Watch list",
+    "WatchedLibrary": "Watched"
   }
 }
