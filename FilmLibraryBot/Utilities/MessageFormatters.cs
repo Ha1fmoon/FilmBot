@@ -20,6 +20,20 @@ public static class MessageFormatters
         return message;
     }
 
+    public static string FormatLibraryResults(LibraryResults libraryResults)
+    {
+        var libraryTypeName = libraryResults.LibraryType == LibraryType.WatchList
+            ? Texts.Localization.Get("Messages.WatchListTitle")
+            : Texts.Localization.Get("Messages.WatchedLibraryTitle");
+
+        if (libraryResults.TotalPages <= 1) return libraryTypeName;
+
+        return $"{libraryTypeName}\n" +
+               Texts.Localization.Get("Messages.LibraryPagination",
+                   libraryResults.CurrentPage.ToString(),
+                   libraryResults.TotalPages.ToString());
+    }
+
     public static string FormatMovieItem(Movie movie, bool isInWatchlist = false, bool isWatched = false)
     {
         var response = $"<b>{movie.Title} ({movie.Year})</b>\n";

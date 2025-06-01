@@ -30,7 +30,7 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            await _logger.LogErrorAsync(ex, $"GetOrCreateUserAsync: userId={userId}, username={username}");
+            await _logger.LogErrorAsync(ex, $"UserService.GetOrCreateUserAsync: userId={userId}, username={username}");
             return null;
         }
     }
@@ -43,7 +43,7 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            await _logger.LogErrorAsync(ex, $"AddToWatchListAsync: userId={userId}, movieId={movieId}");
+            await _logger.LogErrorAsync(ex, $"UserService.AddToWatchListAsync: userId={userId}, movieId={movieId}");
         }
     }
 
@@ -55,20 +55,22 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            await _logger.LogErrorAsync(ex, $"RemoveFromWatchListAsync: userId={userId}, movieId={movieId}");
+            await _logger.LogErrorAsync(ex,
+                $"UserService.RemoveFromWatchListAsync: userId={userId}, movieId={movieId}");
         }
     }
 
-    public async Task<IEnumerable<Movie>> GetWatchListAsync(long userId, CancellationToken cancellationToken = default)
+    public async Task<LibraryResults> GetWatchListAsync(long userId, int page = 1,
+        CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _userRepository.GetWatchListAsync(userId, cancellationToken);
+            return await _userRepository.GetWatchListAsync(userId, page, cancellationToken);
         }
         catch (Exception ex)
         {
-            await _logger.LogErrorAsync(ex, $"GetWatchListAsync: userId={userId}");
-            return [];
+            await _logger.LogErrorAsync(ex, $"UserService.GetWatchListAsync: userId={userId}");
+            return new LibraryResults();
         }
     }
 
@@ -81,7 +83,7 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            await _logger.LogErrorAsync(ex, $"MarkAsWatchedAsync: userId={userId}, movieId={movieId}");
+            await _logger.LogErrorAsync(ex, $"UserService.MarkAsWatchedAsync: userId={userId}, movieId={movieId}");
         }
     }
 
@@ -94,21 +96,21 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            await _logger.LogErrorAsync(ex, $"RemoveFromWatchedAsync: userId={userId}, movieId={movieId}");
+            await _logger.LogErrorAsync(ex, $"UserService.RemoveFromWatchedAsync: userId={userId}, movieId={movieId}");
         }
     }
 
-    public async Task<IEnumerable<Movie>> GetWatchedMoviesAsync(long userId,
+    public async Task<LibraryResults> GetWatchedMoviesAsync(long userId, int page = 1,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _userRepository.GetWatchedMoviesAsync(userId, cancellationToken);
+            return await _userRepository.GetWatchedMoviesAsync(userId, page, cancellationToken);
         }
         catch (Exception ex)
         {
-            await _logger.LogErrorAsync(ex, $"GetWatchedMoviesAsync: userId={userId}");
-            return [];
+            await _logger.LogErrorAsync(ex, $"UserService.GetWatchedMoviesAsync: userId={userId}");
+            return new LibraryResults();
         }
     }
 
@@ -117,7 +119,7 @@ public class UserService : IUserService
     {
         try
         {
-            var watchList = (await GetWatchListAsync(userId, cancellationToken)).ToList();
+            var watchList = (await _userRepository.GetFullWatchListAsync(userId, cancellationToken)).ToList();
 
             if (watchList.Count == 0) return null;
 
@@ -132,7 +134,8 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            await _logger.LogErrorAsync(ex, $"GetRandomFromWatchListAsync: userId={userId}, mediaType={mediaType}");
+            await _logger.LogErrorAsync(ex,
+                $"UserService.GetRandomFromWatchListAsync: userId={userId}, mediaType={mediaType}");
             return null;
         }
     }
@@ -145,7 +148,7 @@ public class UserService : IUserService
             if (rating < 1 || rating > 10)
             {
                 await _logger.LogWarningAsync($"Attempted to set invalid rating: {rating}",
-                    $"RateMovieAsync: userId={userId}, movieId={movieId}");
+                    $"UserService.RateMovieAsync: userId={userId}, movieId={movieId}");
                 return;
             }
 
@@ -153,7 +156,8 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            await _logger.LogErrorAsync(ex, $"RateMovieAsync: userId={userId}, movieId={movieId}, rating={rating}");
+            await _logger.LogErrorAsync(ex,
+                $"UserService.RateMovieAsync: userId={userId}, movieId={movieId}, rating={rating}");
         }
     }
 
@@ -165,7 +169,7 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            await _logger.LogErrorAsync(ex, $"IsInWatchlistAsync: userId={userId}, movieId={movieId}");
+            await _logger.LogErrorAsync(ex, $"UserService.IsInWatchlistAsync: userId={userId}, movieId={movieId}");
             return false;
         }
     }
@@ -178,7 +182,7 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            await _logger.LogErrorAsync(ex, $"IsInWatchedAsync: userId={userId}, movieId={movieId}");
+            await _logger.LogErrorAsync(ex, $"UserService.IsInWatchedAsync: userId={userId}, movieId={movieId}");
             return false;
         }
     }
@@ -191,7 +195,7 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            await _logger.LogErrorAsync(ex, $"GetRatingAsync: userId={userId}, movieId={movieId}");
+            await _logger.LogErrorAsync(ex, $"UserService.GetRatingAsync: userId={userId}, movieId={movieId}");
             return null;
         }
     }

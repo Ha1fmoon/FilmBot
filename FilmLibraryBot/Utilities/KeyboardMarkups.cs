@@ -19,47 +19,66 @@ public static class KeyboardMarkups
             ]);
         }
 
-        var navigationRow = new List<InlineKeyboardButton>();
+        if (searchResults.TotalPages > 1)
+        {
+            var navigationRow = new List<InlineKeyboardButton>();
 
-        if (searchResults.CurrentPage > 1)
-            navigationRow.Add(InlineKeyboardButton.WithCallbackData(
-                Texts.Localization.Get("Buttons.Previous"),
-                $"page:{searchResults.CurrentPage - 1}"));
+            if (searchResults.CurrentPage > 1)
+                navigationRow.Add(InlineKeyboardButton.WithCallbackData(
+                    Texts.Localization.Get("Buttons.Previous"),
+                    $"page:{searchResults.CurrentPage - 1}"));
 
-        if (searchResults.CurrentPage < searchResults.TotalPages)
-            navigationRow.Add(InlineKeyboardButton.WithCallbackData(
-                Texts.Localization.Get("Buttons.Next"),
-                $"page:{searchResults.CurrentPage + 1}"));
+            if (searchResults.CurrentPage < searchResults.TotalPages)
+                navigationRow.Add(InlineKeyboardButton.WithCallbackData(
+                    Texts.Localization.Get("Buttons.Next"),
+                    $"page:{searchResults.CurrentPage + 1}"));
 
-        if (navigationRow.Any()) buttons.Add(navigationRow.ToArray());
+            if (navigationRow.Any()) buttons.Add(navigationRow.ToArray());
+        }
 
         buttons.Add([InlineKeyboardButton.WithCallbackData(Texts.Localization.Get("Buttons.Cancel"), "back")]);
 
         return new InlineKeyboardMarkup(buttons);
     }
 
-    public static InlineKeyboardMarkup Library(List<Movie> movies, LibraryType libraryType)
+    public static InlineKeyboardMarkup LibraryWithPagination(LibraryResults libraryResults)
     {
         var buttons = new List<InlineKeyboardButton[]>();
 
-        for (var i = 0; i < movies.Count; i++)
+        for (var i = 0; i < libraryResults.Items.Count; i++)
         {
-            var callbackData = libraryType == LibraryType.WatchList
-                ? $"watchlist_item:{movies[i].Id}"
-                : $"watched_item:{movies[i].Id}";
+            var movie = libraryResults.Items[i];
+            var callbackData = libraryResults.LibraryType == LibraryType.WatchList
+                ? $"watchlist_item:{movie.Id}"
+                : $"watched_item:{movie.Id}";
 
-            var formattedMovie = libraryType == LibraryType.WatchList
-                ? movies[i].FormatForWatchList()
-                : movies[i].FormatForWatchedList();
+            var formattedMovie = libraryResults.LibraryType == LibraryType.WatchList
+                ? movie.FormatForWatchList()
+                : movie.FormatForWatchedList();
 
             buttons.Add([
-                InlineKeyboardButton.WithCallbackData(
-                    formattedMovie,
-                    callbackData)
+                InlineKeyboardButton.WithCallbackData(formattedMovie, callbackData)
             ]);
         }
 
-        buttons.Add([InlineKeyboardButton.WithCallbackData(Texts.Localization.Get("Buttons.Back"), "back")]);
+        if (libraryResults.TotalPages > 1)
+        {
+            var navigationRow = new List<InlineKeyboardButton>();
+
+            if (libraryResults.CurrentPage > 1)
+                navigationRow.Add(InlineKeyboardButton.WithCallbackData(
+                    Texts.Localization.Get("Buttons.Previous"),
+                    $"library_page:{libraryResults.CurrentPage - 1}"));
+
+            if (libraryResults.CurrentPage < libraryResults.TotalPages)
+                navigationRow.Add(InlineKeyboardButton.WithCallbackData(
+                    Texts.Localization.Get("Buttons.Next"),
+                    $"library_page:{libraryResults.CurrentPage + 1}"));
+
+            buttons.Add(navigationRow.ToArray());
+        }
+
+        buttons.Add([InlineKeyboardButton.WithCallbackData(Texts.Localization.Get("Buttons.Cancel"), "cancel")]);
 
         return new InlineKeyboardMarkup(buttons);
     }
@@ -159,5 +178,25 @@ public static class KeyboardMarkups
         ]);
 
         return new InlineKeyboardMarkup(buttons);
+    }
+
+    public static InlineKeyboardMarkup LibraryTypeSelection()
+    {
+        return new InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton.WithCallbackData(
+                    Texts.Localization.Get("Buttons.WatchList"),
+                    "show_watchlist"
+                ),
+                InlineKeyboardButton.WithCallbackData(
+                    Texts.Localization.Get("Buttons.WatchedLibrary"),
+                    "show_watched"
+                ),
+                InlineKeyboardButton.WithCallbackData(
+                    Texts.Localization.Get("Buttons.Cancel"),
+                    "cancel"
+                )
+            ]
+        ]);
     }
 }

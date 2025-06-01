@@ -54,7 +54,9 @@
     "YourRating": "Your rating: {0}/10",
     "NotRatedYet": "You haven't rated this movie yet",
     "AddedToLibraryStatus": "Movie added to library",
-    "MoreDetailsAbout": "More details about {0}"
+    "MoreDetailsAbout": "More details about {0}",
+    "LibraryPagination": "Page {0} of {1}",
+    "MessageTooLong": "The maximum length of a search query string is 50 characters."
   },
   "MediaTypes": {
     "Movie": "Movie",

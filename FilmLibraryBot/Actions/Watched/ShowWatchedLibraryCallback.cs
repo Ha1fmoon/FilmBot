@@ -7,23 +7,33 @@ public class ShowWatchedLibraryCallback : CallbackBase
 {
     public override string Name => "show_watched";
     public override bool IsUserServiceRequired => true;
+    public override bool IsStateRequired => true;
 
     public override async Task HandleAsync()
     {
         var userId = GetUserId();
         var cancellationToken = GetCancellationToken();
+        var page = 1;
 
-        var library = (await UserService.GetWatchedMoviesAsync(userId, cancellationToken)).ToList();
+        if (!string.IsNullOrEmpty(GetValue()) && int.TryParse(GetValue(), out var requestedPage)) page = requestedPage;
 
-        if (library.Count == 0)
+        var libraryResults = await UserService.GetWatchedMoviesAsync(userId, page, cancellationToken);
+
+        if (libraryResults.TotalResults == 0)
         {
-            await DeleteMessageAndSendTextAsync(
-                Texts.Localization.Get("Messages.EmptyWatchedLibrary"));
+            await DeleteMessageAndSendTextAsync(Texts.Localization.Get("Messages.EmptyWatchedLibrary"));
             return;
         }
 
-        var response = Texts.Localization.Get("Messages.WatchedLibraryTitle");
+        if (libraryResults.Items.Count == 0 && page > 1)
+        {
+            await DeleteMessageAndSendTextAsync(Texts.Localization.Get("Messages.SearchPageIsEmpty"));
+            return;
+        }
 
-        await DeleteMessageAndSendTextAsync(response, KeyboardMarkups.Library(library, LibraryType.Watched));
+        StateManager.SetState(userId, "LIBRARY_RESULTS", libraryResults);
+
+        var response = MessageFormatters.FormatLibraryResults(libraryResults);
+        await DeleteMessageAndSendTextAsync(response, KeyboardMarkups.LibraryWithPagination(libraryResults));
     }
 }

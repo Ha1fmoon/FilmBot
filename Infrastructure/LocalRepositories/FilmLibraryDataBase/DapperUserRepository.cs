@@ -85,7 +85,67 @@ public class DapperUserRepository : IUserRepository
         await connection.ExecuteAsync(command);
     }
 
-    public async Task<IEnumerable<Movie>> GetWatchListAsync(long userId, CancellationToken cancellationToken = default)
+    public async Task<LibraryResults> GetWatchListAsync(long userId, int page = 1,
+        CancellationToken cancellationToken = default)
+    {
+        const int itemsPerPage = LibraryResults.ItemsPerPage;
+        var offset = (page - 1) * itemsPerPage;
+
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken);
+
+        const string totalCountQuery = """
+                                       SELECT COUNT(*) 
+                                       FROM watchlist 
+                                       WHERE user_id = @UserId
+                                       """;
+
+        var totalCountCommand = new CommandDefinition(
+            totalCountQuery,
+            new { UserId = userId },
+            cancellationToken: cancellationToken);
+
+        var totalCount = await connection.QuerySingleAsync<int>(totalCountCommand);
+
+        const string query = """
+                             SELECT 
+                                 m.id as Id, 
+                                 m.title as Title, 
+                                 m.year as Year, 
+                                 m.rating as Rating, 
+                                 m.overview as Overview, 
+                                 m.media_type as MediaType, 
+                                 m.poster_path as PosterPath, 
+                                 m.page_path as PagePath
+                             FROM movies m
+                             JOIN watchlist w ON m.id = w.movie_id
+                             WHERE w.user_id = @UserId
+                             ORDER BY m.title
+                             LIMIT @Limit OFFSET @Offset
+                             """;
+
+        var command = new CommandDefinition(
+            query,
+            new { UserId = userId, Limit = itemsPerPage, Offset = offset },
+            cancellationToken: cancellationToken);
+
+        var movies = await connection.QueryAsync<Movie>(command);
+
+        var totalPages = totalCount > 0 ? (int)Math.Ceiling((double)totalCount / itemsPerPage) : 0;
+
+        return new LibraryResults
+        {
+            Items = movies.ToList(),
+            LibraryType = LibraryType.WatchList,
+            UserId = userId,
+            CurrentPage = page,
+            TotalPages = totalPages,
+            TotalResults = totalCount
+        };
+    }
+
+    public async Task<IEnumerable<Movie>> GetFullWatchListAsync(long userId,
+        CancellationToken cancellationToken = default)
     {
         await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken);
@@ -148,11 +208,27 @@ public class DapperUserRepository : IUserRepository
         await connection.ExecuteAsync(command);
     }
 
-    public async Task<IEnumerable<Movie>> GetWatchedMoviesAsync(long userId,
+    public async Task<LibraryResults> GetWatchedMoviesAsync(long userId, int page = 1,
         CancellationToken cancellationToken = default)
     {
+        const int itemsPerPage = LibraryResults.ItemsPerPage;
+        var offset = (page - 1) * itemsPerPage;
+
         await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken);
+
+        const string totalCountQuery = """
+                                       SELECT COUNT(*) 
+                                       FROM watched 
+                                       WHERE user_id = @UserId
+                                       """;
+
+        var totalCountCommand = new CommandDefinition(
+            totalCountQuery,
+            new { UserId = userId },
+            cancellationToken: cancellationToken);
+
+        var totalCount = await connection.QuerySingleAsync<int>(totalCountCommand);
 
         const string query = """
                              SELECT 
@@ -169,14 +245,27 @@ public class DapperUserRepository : IUserRepository
                              JOIN watched w ON m.id = w.movie_id
                              WHERE w.user_id = @UserId
                              ORDER BY m.title
+                             LIMIT @Limit OFFSET @Offset
                              """;
 
         var command = new CommandDefinition(
             query,
-            new { UserId = userId },
+            new { UserId = userId, Limit = itemsPerPage, Offset = offset },
             cancellationToken: cancellationToken);
 
-        return await connection.QueryAsync<Movie>(command);
+        var movies = await connection.QueryAsync<Movie>(command);
+
+        var totalPages = totalCount > 0 ? (int)Math.Ceiling((double)totalCount / itemsPerPage) : 0;
+
+        return new LibraryResults
+        {
+            Items = movies.ToList(),
+            LibraryType = LibraryType.Watched,
+            UserId = userId,
+            CurrentPage = page,
+            TotalPages = totalPages,
+            TotalResults = totalCount
+        };
     }
 
     public async Task SetRatingAsync(long userId, long movieId, int rating,

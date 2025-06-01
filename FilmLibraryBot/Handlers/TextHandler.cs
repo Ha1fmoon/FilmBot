@@ -44,6 +44,18 @@ public class TextHandler
             return;
         }
 
+        text = text.Trim();
+
+        if (text.Length > 50)
+        {
+            await botClient.SendMessage(
+                chatId,
+                Texts.Localization.Get("Messages.MessageTooLong"),
+                cancellationToken: cancellationToken
+            );
+            return;
+        }
+
         if (state == "WAITING_FOR_MOVIE_NAME") await HandleMovieNameInput(botClient, message, text, cancellationToken);
     }
 

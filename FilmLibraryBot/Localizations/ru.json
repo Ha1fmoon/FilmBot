@@ -2,9 +2,8 @@
   "CommandDescriptions": {
     "Start": "Начать работу с ботом",
     "Random": "Выбрать случайный фильм/сериал",
-    "Watched": "Показать просмотренные фильмы и сериалы",
     "Help": "Показать список доступных команд",
-    "WatchList": "Показать библиотеку",
+    "Library": "Показать библиотеку",
     "Search": "Добавить фильм или сериал"
   },
   "Messages": {
@@ -54,7 +53,10 @@
     "YourRating": "Ваша оценка: {0}/10",
     "NotRatedYet": "Вы ещё не оценили этот фильм",
     "AddedToLibraryStatus": "Фильм добавлен в библиотеку",
-    "MoreDetailsAbout": "Подробнее о {0}"
+    "MoreDetailsAbout": "Подробнее о {0}",
+    "LibraryPagination": "Страница {0} из {1}",
+    "ChooseLibraryType": "Выберите тип библиотеки:",
+    "MessageTooLong": "Максимальная длина строки поискового запроса составляет 50 символов."
   },
   "MediaTypes": {
     "Movie": "Фильм",
@@ -83,6 +85,8 @@
     "AddToWatchListFull": "Добавить в список к просмотру",
     "RemoveFromWatchListFull": "Удалить из списка",
     "RemoveFromWatchedFull": "Удалить из просмотренного",
-    "BackToSearch": "Назад к поиску"
+    "BackToSearch": "Назад к поиску",
+    "WatchList": "К просмотру",
+    "WatchedLibrary": "Просмотренные"
   }
 }

@@ -1,4 +1,5 @@
-﻿using FilmLibraryBot.Base;
+﻿using Domain.Models;
+using FilmLibraryBot.Base;
 using FilmLibraryBot.Utilities;
 
 namespace FilmLibraryBot.Actions.WatchList;
